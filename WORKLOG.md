@@ -175,3 +175,46 @@ one answer that is certainly wrong, and the trade-off document has to enumerate 
 authorization can end other than settling.
 
 **State:** 59 assertions, all green.
+
+---
+
+## 2026-08-30 17:41 UTC — the three policies, and the interest contradiction resolved
+
+The rules require each day to publish a rounded accrual **and** the daily accruals to sum
+exactly to what is capitalised. Over this scenario those two requirements give 0.83 and 0.82.
+That is not a hypothetical tension, so there is now a test that asserts both numbers and the
+disagreement between them, rather than a paragraph claiming it.
+
+Chose the **running remainder carry**: each day publishes
+`round(cumulative unrounded) - everything published so far`. The running total is therefore
+always the correctly rounded total and the remainder moves into the next day instead of being
+dropped or double-counted. Summing exactly becomes a property of the construction. It is the
+same largest-remainder discipline as the instalment split, one day later, so one idea serves
+both places rather than two mechanisms for one problem.
+
+The cost is visible and the report has to footnote it: day six publishes 0.17 where
+`440.00 x 0.0004` rounded on its own is 0.18. Asserted directly, both numbers in one test, so
+nobody later "fixes" it.
+
+Built the accrue-then-sum alternative in **test scope** to measure the drift instead of
+asserting it. Over a thousand days at a balance accruing 0.0051 a day — just above half a minor
+unit, so it rounds up every single day — it publishes 10.00 against the 5.10 actually owed. Put
+it in test scope deliberately: an implementation sitting in the engine behind a configuration
+flag would eventually be selected by someone who found the flag before the argument.
+
+`InterestAccrualPolicy` is a **stateful** strategy, which is unusual and is the honest shape.
+The figure published for a day is not a function of that day's balance alone; it depends on
+what has already been published, and no stateless signature can satisfy the sum-exactly rule.
+An instance belongs to one replay and the javadoc says so.
+
+The fee policy returns a **list**, not an `Optional`. A restatement policy concludes several
+fees at once, and forcing it through a shape that assumes at most one would quietly settle the
+question the policy exists to ask. The value day is an output of the policy too, since the two
+readings differ on exactly that point.
+
+Fees are configured **per currency** with no conversion. A single amount applied to every
+currency would assert that twenty-five dirhams and twenty-five dinars are the same charge,
+which is out by roughly a factor of ten. A fee falling due in an unconfigured currency throws:
+inventing a number and silently skipping the fee are both worse than stopping.
+
+**State:** 77 assertions, all green.
