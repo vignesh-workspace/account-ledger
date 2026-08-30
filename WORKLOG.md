@@ -271,3 +271,37 @@ the fee is booked would pay interest on money already taken. Both are silent err
 order being unavailable for rearrangement is what stops them.
 
 **State:** 97 assertions, all green.
+
+---
+
+## 2026-08-30 18:31 UTC — the harness, and why the report types are records
+
+`./run.sh report` now prints the window: instructions and their outcomes, positions, live
+authorization states, then the end-of-window capitalisation and a conservation check. It exits
+non-zero if any account fails to reconcile, so it is a check and not only something to read.
+
+The **conservation check** is ten lines and is the only structural guard here against a bug that
+creates money. Entries are single-sided — a credit of 400.00 has no matching debit anywhere — so
+nothing in this ledger nets to zero and double entry cannot be used to prove it consistent. What
+can be proved is narrower and still worth having: each account's entries must sum to its final
+balance. It runs in the harness and again as an assertion in the suite.
+
+Report types are records, and that is what makes the determinism test mean anything. Comparing
+two replays for equality has to be structural. If a day report were a class with a formatted
+`toString`, "the same report" would collapse into "the same text", and two runs could agree on
+every printed character while disagreeing about a number the text does not happen to print.
+
+The determinism test runs the stream through two engines built from **one** config as well as
+two, which is the case that would have caught the shared-interest-policy mistake. Its assertion
+names the number it is protecting: the second replay capitalises 0.82, not 1.64.
+
+`LedgerHarness` lives in test scope alongside the scenario, not in the engine. It has to name
+accounts and authorizations to run the scenario at all, and the rule that scenario identifiers
+never appear in `src/main/java` is worth more than the convention that a main method lives in
+the main tree. `ReportPrinter` is in the engine, because it names nothing.
+
+Also noticed while reading the printed report: an authorization that has finished stays listed
+on every later day rather than disappearing. Keeping it was deliberate — a settled authorization
+that vanished would make the day it settled look like the day it never existed.
+
+**State:** 101 assertions, all green.

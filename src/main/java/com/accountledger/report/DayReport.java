@@ -12,10 +12,15 @@ import java.util.List;
  * on which three instructions were declined is not an empty day, and a report that printed
  * only successes would say it was.
  */
-public record DayReport(BusinessDay day, List<Outcome> outcomes, List<AccountDayReport> accounts) {
+public record DayReport(
+        BusinessDay day,
+        List<Outcome> outcomes,
+        List<AccountDayReport> accounts,
+        List<AuthorizationStatus> authorizations) {
 
     public DayReport {
         outcomes = List.copyOf(outcomes);
         accounts = List.copyOf(accounts);
+        authorizations = List.copyOf(authorizations);
     }
 }

@@ -2,6 +2,7 @@ package com.accountledger;
 
 import com.accountledger.account.AccountRegistryTest;
 import com.accountledger.book.LedgerBookTest;
+import com.accountledger.engine.DeterminismTest;
 import com.accountledger.engine.EngineModesTest;
 import com.accountledger.engine.ScenarioDecisionsTest;
 import com.accountledger.engine.ScenarioReplayTest;
@@ -37,6 +38,7 @@ public final class AllTests {
                 ScenarioReplayTest.class,
                 ScenarioDecisionsTest.class,
                 EngineModesTest.class,
+                DeterminismTest.class,
                 BusinessDayTest.class);
     }
 }

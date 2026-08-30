@@ -6,8 +6,10 @@ import com.accountledger.account.AccountRegistry;
 import com.accountledger.account.AccountState;
 import com.accountledger.book.EntryType;
 import com.accountledger.book.LedgerBook;
+import com.accountledger.event.AuthorizationId;
 import com.accountledger.event.EventId;
 import com.accountledger.event.LedgerEvent;
+import com.accountledger.hold.Hold;
 import com.accountledger.hold.HoldRegistry;
 import com.accountledger.money.Money;
 import com.accountledger.outcome.Outcome;
@@ -15,6 +17,7 @@ import com.accountledger.policy.FeeAssessment;
 import com.accountledger.policy.FeeContext;
 import com.accountledger.policy.InterestAccrualPolicy;
 import com.accountledger.report.AccountDayReport;
+import com.accountledger.report.AuthorizationStatus;
 import com.accountledger.report.DayReport;
 import com.accountledger.time.BusinessDay;
 import java.util.ArrayList;
@@ -128,7 +131,20 @@ public class DayCloseProcessor {
                     fees.get(id),
                     interest.get(id)));
         }
-        return new DayReport(day, outcomes, rows);
+        return new DayReport(day, outcomes, rows, authorizationStatuses());
+    }
+
+    /** Every authorization seen so far, finished ones included, in approval order. */
+    private List<AuthorizationStatus> authorizationStatuses() {
+        List<AuthorizationStatus> statuses = new ArrayList<>();
+        for (Account account : accounts.all()) {
+            for (AuthorizationId id : holds.idsFor(account.id())) {
+                Hold hold = holds.find(id).orElseThrow();
+                statuses.add(new AuthorizationStatus(
+                        id, account.id(), hold.amount(), holds.stateOf(id).orElseThrow()));
+            }
+        }
+        return statuses;
     }
 
     /**
