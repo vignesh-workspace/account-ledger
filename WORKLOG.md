@@ -140,3 +140,38 @@ Zero is allowed for an `OPENING` entry and refused for every other type. An acco
 able to open empty; a zero credit moves nothing and would still print as a movement.
 
 **State:** 47 assertions, all green.
+
+---
+
+## 2026-08-30 17:19 UTC — outcomes as values, holds as a separate projection
+
+A refusal is a returned `Rejected`, never a thrown exception. Two reasons, and the second is
+the one that decided it: an exception would unwind the replay and lose every event after the
+bad one, and it would make "the ledger declined this authorization" — an ordinary, correct
+business answer — indistinguishable from a defect in the engine. Every event produces exactly
+one outcome and the day report prints all of them, so a rejection is a record rather than a
+silence.
+
+`RejectionReason` is an enum carrying its own sentence. The wording lives next to the constant
+so the same refusal cannot be described three different ways in three different places, and a
+test can assert on the reason without matching prose. Formatting is pinned to `Locale.ROOT`
+after noticing the determinism claim reaches further than expected: `String.format` with a
+default locale would produce a different report on a Turkish machine, and the determinism test
+compares reports for equality. There is now a test that sets the default locale and checks the
+output does not move.
+
+**The hold registry is deliberately not bitemporal, and the ledger book is.** That asymmetry
+looked wrong until the question was written out. A balance is asked about as of a past
+knowledge day constantly — that is the whole backdating problem. An authorization's state is
+only ever asked at the moment an instruction is being judged: is there still a hold against
+this account right now. Nothing asks what an authorization's state was believed to be on day
+three. Giving the registry knowledge-day queries would be machinery with no caller, so it
+keeps the shape of the question actually asked. It stays a projection either way: discard it,
+replay the journal, and it rebuilds identically.
+
+`AuthState.EXPIRED` is defined and unreachable in this window, since no expiry rule was given.
+Kept it anyway. Omitting it would imply an authorization can stay live forever, which is the
+one answer that is certainly wrong, and the trade-off document has to enumerate every way an
+authorization can end other than settling.
+
+**State:** 59 assertions, all green.

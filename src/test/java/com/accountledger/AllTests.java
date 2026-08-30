@@ -3,6 +3,8 @@ package com.accountledger;
 import com.accountledger.account.AccountRegistryTest;
 import com.accountledger.book.LedgerBookTest;
 import com.accountledger.event.EventStreamTest;
+import com.accountledger.hold.HoldRegistryTest;
+import com.accountledger.outcome.OutcomeTest;
 import com.accountledger.money.MoneyTest;
 import com.accountledger.money.RemainderAllocatorTest;
 import com.accountledger.testkit.TestRunner;
@@ -21,6 +23,8 @@ public final class AllTests {
                 EventStreamTest.class,
                 AccountRegistryTest.class,
                 LedgerBookTest.class,
+                HoldRegistryTest.class,
+                OutcomeTest.class,
                 BusinessDayTest.class);
     }
 }
