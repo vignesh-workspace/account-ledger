@@ -60,6 +60,10 @@ public final class EventStream {
                     AuthorizationId.of(authorizationId), amount, BusinessDay.of(valueDay)));
         }
 
+        public Builder closeAccount(String eventId, int bookingDay, AccountId account) {
+            return add(new AccountClosure(EventId.of(eventId), BusinessDay.of(bookingDay), account));
+        }
+
         public Builder reversal(String eventId, int bookingDay, AccountId account,
                 String reversedEventId, int valueDay) {
             return add(new Reversal(EventId.of(eventId), BusinessDay.of(bookingDay), account,

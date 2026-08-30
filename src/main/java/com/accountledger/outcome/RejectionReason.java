@@ -19,6 +19,8 @@ public enum RejectionReason {
 
     ACCOUNT_CLOSED("account %s closed on %s and takes no further entries"),
 
+    ACCOUNT_NOT_YET_OPEN("account %s does not open until %s"),
+
     ACCOUNT_ALREADY_CLOSED("account %s had already closed on %s"),
 
     DAY_OUTSIDE_WINDOW("booking day %s falls outside the replay window %s to %s"),
@@ -26,6 +28,8 @@ public enum RejectionReason {
     DUPLICATE_EVENT_ID("event id %s has already been seen in this stream"),
 
     UNKNOWN_AUTHORIZATION("authorization %s was never approved, so there is nothing to settle"),
+
+    DUPLICATE_AUTHORIZATION_ID("authorization %s has already been approved"),
 
     AUTHORIZATION_ALREADY_CLOSED("authorization %s is already %s"),
 

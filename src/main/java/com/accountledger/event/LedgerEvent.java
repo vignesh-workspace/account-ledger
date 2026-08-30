@@ -9,7 +9,7 @@ import com.accountledger.time.BusinessDay;
  * engine refuses still exists in the journal and still appears in the day's report. Nothing
  * here records whether the instruction was carried out.
  *
- * <p>Sealed, so dispatch is an exhaustive {@code switch} and adding a sixth kind is a compile
+ * <p>Sealed, so dispatch is an exhaustive {@code switch} and adding another kind is a compile
  * error at every handler rather than a silently unhandled case at runtime. This is what
  * stands in for a visitor: the same completeness guarantee without the double dispatch.
  *
@@ -27,7 +27,7 @@ import com.accountledger.time.BusinessDay;
  * position in the stream is a property of submission rather than of the instruction.
  */
 public sealed interface LedgerEvent
-        permits Credit, Debit, Authorization, Settlement, Reversal {
+        permits Credit, Debit, Authorization, Settlement, Reversal, AccountClosure {
 
     EventId eventId();
 

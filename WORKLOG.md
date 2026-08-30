@@ -218,3 +218,56 @@ which is out by roughly a factor of ten. A fee falling due in an unconfigured cu
 inventing a number and silently skipping the fee are both worse than stopping.
 
 **State:** 77 assertions, all green.
+
+---
+
+## 2026-08-30 18:04 UTC — the engine, and a bug the determinism rule caught before it existed
+
+The replay reproduces every target figure on the first run: 250.00, 250.00 with 200.00 held,
+650.00, 465.00, −155.00 before the fee and −180.00 after it, 440.00, capitalising 0.82 to
+finish at 440.82; and 10.000 on the three-decimal account finishing at 10.008.
+
+`LedgerConfig` takes the interest policy as a **factory**, not an instance. Writing it the
+obvious way, two engines built from one config would share one policy, and the second replay
+would continue the first replay's remainder carry and publish different figures for identical
+input. The determinism requirement is what surfaced it — the test builds two engines from one
+config precisely to catch that shape of mistake — and handing over a factory makes the mistake
+unavailable rather than merely detected.
+
+**Added a sixth event kind, `AccountClosure`.** The architecture note lists five records, but
+closing has to land in the journal and replay with everything else, and a closure applied
+through a registry method would be invisible to a rebuild from the journal. Opening stays a
+configuration operation that throws on a duplicate, and closing is an event that produces a
+rejection: asymmetric, and exactly what the two are. A duplicate open is a configuration
+written wrong; a second closure is an instruction that arrived twice.
+
+Resolved the fee-currency question by refusing to answer it. The fee is given as AED 25.00 and
+the second account is in BHD. A single amount applied to both would assert that twenty-five
+dirhams and twenty-five dinars are the same charge. Fees are configured per currency and a fee
+falling due in an unconfigured currency throws. It never fires in this scenario, because that
+account never goes negative — which is the point: nothing was invented to cover a case the
+rules do not describe.
+
+Two decisions taken while writing the replayer, both recorded as ambiguities:
+
+- **A partial settlement closes the authorization and releases the remainder** rather than
+  leaving the difference held. The merchant has said what the transaction was worth; continuing
+  to reserve the rest restricts funds against a completed instruction. The other reading is
+  defensible and the day report shows the release, so a reader can see which was chosen.
+- **Interest accrued while an account was open is still capitalised at the end of the window,
+  even if the account closed in between.** The money was earned and is owed. It does mean the
+  ledger books an entry to a closed account, which sits awkwardly beside the rule that a closed
+  account takes no further entries — that rule governs instructions, not the ledger's own
+  obligations. Asserted in the closure test so the choice is visible rather than incidental.
+
+The criterion described as vacuous — a hold reducing available balance without moving the
+ledger balance — turns out **not** to be vacuous. The first authorization is approved on day
+two, and that day shows a ledger balance of 250.00 unchanged with available at 50.00. It is
+asserted directly against the scenario rather than against a synthetic one.
+
+`DayCloseProcessor.close` is `final` and its stages are not. Assessing the fee before the day's
+instructions are processed would test a balance that has not happened; accruing interest before
+the fee is booked would pay interest on money already taken. Both are silent errors, and the
+order being unavailable for rearrangement is what stops them.
+
+**State:** 97 assertions, all green.

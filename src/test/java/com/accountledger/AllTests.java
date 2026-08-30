@@ -2,6 +2,9 @@ package com.accountledger;
 
 import com.accountledger.account.AccountRegistryTest;
 import com.accountledger.book.LedgerBookTest;
+import com.accountledger.engine.EngineModesTest;
+import com.accountledger.engine.ScenarioDecisionsTest;
+import com.accountledger.engine.ScenarioReplayTest;
 import com.accountledger.event.EventStreamTest;
 import com.accountledger.hold.HoldRegistryTest;
 import com.accountledger.outcome.OutcomeTest;
@@ -31,6 +34,9 @@ public final class AllTests {
                 FlatOverdraftFeePolicyTest.class,
                 InterestAccrualPolicyTest.class,
                 AuthorizationDecisionPolicyTest.class,
+                ScenarioReplayTest.class,
+                ScenarioDecisionsTest.class,
+                EngineModesTest.class,
                 BusinessDayTest.class);
     }
 }
