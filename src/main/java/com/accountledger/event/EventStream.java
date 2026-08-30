@@ -6,7 +6,7 @@ import com.accountledger.money.RemainderAllocator;
 import com.accountledger.time.BusinessDay;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -34,7 +34,7 @@ public final class EventStream {
     public static final class Builder {
 
         private final List<LedgerEvent> events = new ArrayList<>();
-        private final Set<EventId> ids = new HashSet<>();
+        private final Set<EventId> ids = new LinkedHashSet<>();
 
         public Builder credit(
                 String eventId, int bookingDay, AccountId account, Money amount, int valueDay) {
