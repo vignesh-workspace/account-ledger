@@ -1,5 +1,7 @@
 package com.accountledger;
 
+import com.accountledger.account.AccountRegistryTest;
+import com.accountledger.book.LedgerBookTest;
 import com.accountledger.event.EventStreamTest;
 import com.accountledger.money.MoneyTest;
 import com.accountledger.money.RemainderAllocatorTest;
@@ -17,6 +19,8 @@ public final class AllTests {
                 MoneyTest.class,
                 RemainderAllocatorTest.class,
                 EventStreamTest.class,
+                AccountRegistryTest.class,
+                LedgerBookTest.class,
                 BusinessDayTest.class);
     }
 }

@@ -102,3 +102,41 @@ Scenario data lives in one test fixture and nowhere else.
 before every commit. If it ever prints, the engine has stopped being general.
 
 **State:** 31 assertions, all green.
+
+---
+
+## 2026-08-30 17:06 UTC — the book, and what a balance is a function of
+
+`balanceAsOf` takes a value day **and** a knowledge day, and there is no single-argument
+overload. That was a deliberate refusal: the convenience method is the whole bug. "The day two
+balance" is 250.00 asked on day two and −370.00 asked on day five, and a signature that lets a
+caller ask without saying when makes the ambiguity invisible at every call site. With both days
+mandatory, the criterion about the restated day two is written as
+`balanceAsOf(account, day(2), day(5))` and needs no prose to explain it.
+
+**There is no REVERSAL entry type.** The first sketch had one, and it does not work: the
+direction of a reversal depends on what it reverses, so `signedAmount()` could not be answered
+from the type alone without walking back to the original. Dropped it. Reversing a debit books a
+**credit** — the money really does come back — and the fact that this credit is a correction is
+recorded as `reversesSequence`, a link pointing backwards. Direction stays a property of the
+type, amounts stay positive, and "has this been reversed" becomes a forward question the book
+answers rather than a flag someone has to remember to set on the original.
+
+Resolved a contradiction in the requirements while writing `AccountRegistry`. Unknown accounts
+are described both as an ingest rejection and as something that throws. Both are right, at
+different moments: an event naming an account that was never opened is bad **input**, and
+crashing on it would discard every other event in the stream, so ingest rejects it and the day
+report records it. After ingest, the same lookup throws, because an unknown account has stopped
+being bad input and become a bug in the engine that let it past. `isKnown` is the question
+ingest asks; `require` is the assertion everything downstream makes. Currency mismatch keeps
+throwing in both places — an AED instruction against a BHD account is wrong units, and there is
+no ledger to produce.
+
+`LinkedHashMap` in the registry, not `HashMap`. The registry is iterated once per day to build
+the report, and hash order varies with contents. A report whose rows moved between runs would
+fail the determinism test for a reason that has nothing to do with the ledger.
+
+Zero is allowed for an `OPENING` entry and refused for every other type. An account has to be
+able to open empty; a zero credit moves nothing and would still print as a movement.
+
+**State:** 47 assertions, all green.
