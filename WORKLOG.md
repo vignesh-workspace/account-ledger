@@ -343,3 +343,34 @@ document is checked when somebody happens to read it, and stops being true witho
 noticing.
 
 **State:** 105 assertions green, 1 known gap.
+
+---
+
+## 2026-08-30 19:14 UTC — the documents, and the one deliverable that needed a workaround
+
+Wrote the four documents plus the architecture and trade-off paper. They describe the system and
+say nothing about the order it was built in; this worklog is the only file that records that, and
+it is the right place for it.
+
+`AMBIGUITIES.md` came out at eighteen entries rather than the fourteen anticipated. The four
+extra were all found by writing code rather than by reading requirements: the unknown-account
+contradiction, interest on an account that closes mid-window, which value day a reversal takes,
+and a settlement larger than its hold. Every entry names a test, and where an entry did not have
+one it was either given one or the resolution was not real.
+
+**No converter was available for the PDF.** No pandoc, no LibreOffice, no working Python on this
+machine. Rejected writing a PDF generator in Java: PDF is a text format and a text-only one is
+perhaps a hundred lines, but it would be a second unrelated piece of software living in a ledger
+repository, and it is the same mistake as the bootstrap compiler that was rejected on the first
+day.
+
+Used what the machine already has instead. A twenty-line awk script converts the markdown subset
+actually used — headings, tables, bold, code spans, rules — into print-styled HTML, and headless
+Edge prints it to PDF in one command. The script lives outside the repository because it is a
+tool for producing a deliverable, not part of the ledger. `ARCHITECTURE.pdf` comes out at four
+pages, inside the stated range.
+
+The markdown is committed alongside the PDF deliberately: the PDF is what was asked for, and the
+markdown is what can be diffed when a paragraph changes.
+
+**State:** 105 assertions green, 1 known gap. Nine commits.
