@@ -305,3 +305,41 @@ on every later day rather than disappearing. Keeping it was deliberate — a set
 that vanished would make the day it settled look like the day it never existed.
 
 **State:** 101 assertions, all green.
+
+---
+
+## 2026-08-30 18:52 UTC — refuting the criteria by running them, and one test left failing
+
+Built `RestatementFeePolicy` in test scope and pointed the engine at it. Against the scenario it
+charges **three** fees, value-dated on days two, four and five — the days whose views re-derive
+negative once the backdated debit is known. Forward-only charges one, on day five. So the
+criterion asking for exactly one fee assessed on day two is not reachable under either reading,
+and that is now a number a test produces rather than an argument in a document.
+
+Writing that policy exposed a real defect in the engine. Fee entries took their source id from
+the account and the day being closed, which is unique only while a close books at most one fee.
+The restating policy books three in a single close, and all three would have shared an id, so a
+later reversal naming that id could not have said which fee it meant. The value day is now part
+of the id. A one-fee-per-day assumption had been baked into an identifier without anyone
+deciding it, and only a second policy could have found it.
+
+Also: `RestatementFeePolicy` first looked its fee up before deciding whether any fee was due,
+which made it throw on the three-decimal account that never overdraws. Moved the lookup to the
+point a fee is actually owed, matching the shipped policy. Worth recording because it is the
+same mistake in both directions — the configuration gap should only be fatal when it actually
+blocks an answer.
+
+**The failing test.** One, `@Disabled`, with its reason in the annotation and the reasoning
+inline: a backdated debit should charge the fee on the day the balance actually went negative,
+not the day the instruction arrived. It fails, expecting Day 2 and getting Day 5, and the runner
+prints exactly that every run. Closing the gap is not a different line of code — it needs a
+back-valuation run that reopens closed days and an operational approval gate in front of it,
+because that run moves money on days a customer has already been told about. Both are named in
+the architecture document as cut.
+
+The runner fails the build if a disabled test starts passing, so the gap cannot close quietly.
+The reasoning lives in the test rather than in prose for the same reason: a limitation in a
+document is checked when somebody happens to read it, and stops being true without anyone
+noticing.
+
+**State:** 105 assertions green, 1 known gap.

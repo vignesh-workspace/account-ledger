@@ -40,11 +40,6 @@ public final class RestatementFeePolicy implements OverdraftFeePolicy {
 
     @Override
     public List<FeeAssessment> assess(FeeContext context) {
-        Money fee = feesByCurrency.get(context.account().currency());
-        if (fee == null) {
-            throw new IllegalStateException(
-                    "No fee configured for " + context.account().currency().getCurrencyCode());
-        }
         Set<BusinessDay> alreadyCharged = new LinkedHashSet<>();
         for (LedgerEntry entry : context.book().entriesFor(context.account().id())) {
             if (entry.type() == EntryType.FEE) {
@@ -64,6 +59,13 @@ public final class RestatementFeePolicy implements OverdraftFeePolicy {
             Money restated = context.book()
                     .balanceAsOf(context.account().id(), day, context.day());
             if (restated.isNegative()) {
+                // Looked up only once a fee is actually due, so an account in a currency with
+                // no configured fee is untouched unless it overdraws.
+                Money fee = feesByCurrency.get(context.account().currency());
+                if (fee == null) {
+                    throw new IllegalStateException("No fee configured for "
+                            + context.account().currency().getCurrencyCode());
+                }
                 due.add(new FeeAssessment(fee, day,
                         "re-derived on " + context.day() + ", " + day + " reads " + restated));
             }
