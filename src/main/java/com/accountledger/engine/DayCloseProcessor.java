@@ -91,7 +91,7 @@ public class DayCloseProcessor {
                 FeeContext context = new FeeContext(
                         account, day, config.windowStart(), config.windowEnd(), book);
                 for (FeeAssessment fee : config.feePolicy().assess(context)) {
-                    book.append(feeEventId(account.id(), day), account.id(), EntryType.FEE,
+                    book.append(feeEventId(account.id(), day, fee.valueDay()), account.id(), EntryType.FEE,
                             fee.amount(), fee.valueDay(), day, null);
                     total = total.plus(fee.amount());
                 }
@@ -158,11 +158,15 @@ public class DayCloseProcessor {
     }
 
     /**
-     * Fees and interest are booked by the day close rather than by a submitted instruction, so
-     * they need source ids of their own. The colon separator cannot collide with an id from a
-     * stream, where it would have to survive being written by hand.
+     * Fees are booked by the day close rather than by a submitted instruction, so they need
+     * source ids of their own. The colon separator cannot collide with an id from a stream,
+     * where it would have to survive being written by hand.
+     *
+     * <p>The value day is part of the id, not decoration. A policy that restates history books
+     * several fees in one close, and without the value day they would all share an id and a
+     * later reversal could not say which of them it meant.
      */
-    private static EventId feeEventId(AccountId account, BusinessDay day) {
-        return EventId.of("FEE:" + account + ":" + day.index());
+    private static EventId feeEventId(AccountId account, BusinessDay assessed, BusinessDay value) {
+        return EventId.of("FEE:" + account + ":" + assessed.index() + ":" + value.index());
     }
 }
