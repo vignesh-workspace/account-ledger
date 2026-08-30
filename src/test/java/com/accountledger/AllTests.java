@@ -1,6 +1,8 @@
 package com.accountledger;
 
+import com.accountledger.event.EventStreamTest;
 import com.accountledger.money.MoneyTest;
+import com.accountledger.money.RemainderAllocatorTest;
 import com.accountledger.testkit.TestRunner;
 import com.accountledger.time.BusinessDayTest;
 
@@ -13,6 +15,8 @@ public final class AllTests {
     public static void main(String[] args) {
         new TestRunner().run(
                 MoneyTest.class,
+                RemainderAllocatorTest.class,
+                EventStreamTest.class,
                 BusinessDayTest.class);
     }
 }

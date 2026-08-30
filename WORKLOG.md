@@ -50,3 +50,55 @@ Left alone for now: events, balances, holds. This is only the value types everyt
 rests on.
 
 **State:** 13 assertions, all green, via `./run.sh test`.
+
+---
+
+## 2026-08-30 16:28 UTC — event model, stream builder, remainder allocation
+
+Renamed the project to `account-ledger` and moved the package root to
+`com.accountledger`. Done now rather than later because a package rename costs one commit
+today and touches every file in a week.
+
+Events are modelled as a sealed interface over five records. Sealing is the point: dispatch
+becomes an exhaustive `switch` and a sixth event kind is a compile error at every handler
+rather than an unhandled case discovered at runtime. This is what replaces a visitor here,
+without the double dispatch.
+
+Two decisions came out of writing the records rather than planning them.
+
+**A reversal has no amount.** The first draft gave every event an amount field. That is wrong
+for a reversal: the amount belongs to whatever entry is being reversed and is not known until
+that entry is found. Forcing a value would mean either duplicating it at submission, where it
+could disagree with the original, or inventing a zero that means nothing. `amount()` now
+returns null for reversals and the interface documents why. A reversal does carry its own
+value day, and it is the original's, because a correction has to restate the same day the
+error affected.
+
+**Amounts are always positive; direction is carried by the event kind.** A debit of minus
+five is a contradiction that a signed amount would let through, and the sign convention would
+then have to be remembered at every call site. The constructors refuse it.
+
+Built `RemainderAllocator` earlier than intended because the instalment credit in the
+scenario cannot be expressed without it. Ten in a three-decimal currency does not divide by
+three: 3.333 three times is 9.999 and 3.334 three times is 10.002, and neither is the amount
+instructed. It works in minor units, where division is exact integer arithmetic, then hands
+the leftover units out one each. Parts sum to the total by construction. The same allocator
+will carry the interest rounding remainder later — they are the same problem, so they get one
+implementation and one test suite.
+
+Instalment expansion happens in the stream builder, at submission, not in the engine. The
+instalments are what was actually instructed; the engine sees ordinary credits and needs no
+concept of an instalment plan.
+
+The stream builder never sorts. Order within a day decides outcomes, so a builder that
+quietly reordered would change answers while looking like tidying. The scenario as given is
+not in booking-day order — a reversal booking on day six is listed before a credit booking on
+day five — which means the engine will need a stated rule for an instruction arriving after a
+later day has closed. Not resolved yet; the test only pins that the order survives the
+builder.
+
+Scenario data lives in one test fixture and nowhere else.
+`grep -rn "ACC-00\|Auth-[ABZ]" src/main/java` returns nothing, and that check now runs
+before every commit. If it ever prints, the engine has stopped being general.
+
+**State:** 31 assertions, all green.
